@@ -66,13 +66,16 @@ class GFQuantityDiscountAddon extends GFFeedAddOn {
 	 */
 	public function calc_add_discount( $product_info, $form, $lead ) {
 
-		$feed             = GFAPI::get_feeds( $form->ID );
+		$feed             = GFAPI::get_feeds( $form['ID'] );
 		$minimum_quantity = $feed[0]['meta']['minimum_quantity'];
 		$discount_amount  = $feed[0]['meta']['discount_amount'];
 		$discount_type    = $feed[0]['meta']['discount_type'];
-
-		$quantity = $product_info['products'][1]['quantity'];
-		$price    = $product_info['products'][1]['price'];
+		
+		
+		$product = array_values($product_info['products'])[0];
+		
+		$price = $product['price'];
+		$quantity = $product['quantity'];
 
 		$total_w_currency = (int) preg_replace( '/\..+$/i', '', preg_replace( '/[^0-9\.]/i', '', $price ) );
 
