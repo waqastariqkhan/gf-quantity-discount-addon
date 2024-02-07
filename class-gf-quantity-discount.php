@@ -41,6 +41,24 @@ class GFQuantityDiscountAddon extends GFFeedAddOn {
 		);
 
 		add_filter( 'gform_product_info', array( $this, 'calc_add_discount' ), 10, 3 );
+
+		add_action( 'wp_ajax_get_feed_data', array( $this, 'get_feed_data' ) );
+		add_action( 'wp_ajax_nopriv_get_feed_data', array( $this, 'get_feed_data' ) );
+	}
+
+
+	/**
+	 * Returns feed data requested via Ajax
+	 */
+	public function get_feed_data() {
+		$form_id = isset( $_POST['form_id'] ) ? (int) $_POST['form_id'] : null;
+		$feed    = GFAPI::get_feeds( $form_id );
+		echo json_encode(
+			array(
+				'feed' => $feed,
+			)
+		);
+		wp_die();
 	}
 
 	/**
