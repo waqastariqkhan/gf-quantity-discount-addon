@@ -1,5 +1,5 @@
 # Grvity Forms Quantity Discount Addon
 
-1 - Download and install using wp-admin
-2 - Enable REST API under gravity form settings
-3-  Works only for one feed per form
+- Download and install using wp-admin
+- Enable REST API under gravity form settings
+-  Works only for one feed per form
