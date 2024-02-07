@@ -48,7 +48,7 @@ class GFQuantityDiscountAddon extends GFFeedAddOn {
 	 */
 	public function calc_add_discount( $product_info, $form, $lead ) {
 
-		$feed             = GFAPI::get_feeds( null, $form->ID );
+		$feed             = GFAPI::get_feeds( $form->ID );
 		$minimum_quantity = $feed[0]['meta']['minimum_quantity'];
 		$discount_amount  = $feed[0]['meta']['discount_amount'];
 		$discount_type    = $feed[0]['meta']['discount_type'];
@@ -92,7 +92,7 @@ class GFQuantityDiscountAddon extends GFFeedAddOn {
 	public function plugin_settings_fields() {
 		return array(
 			array(
-				'title'  => esc_html__( 'Simple Add-On Settings', 'gf-quantity-discount' ),
+				'title'  => esc_html__( 'GF Quantity Discount', 'gf-quantity-discount' ),
 				'fields' => array(
 					array(
 						'name'    => 'textbox',
@@ -179,7 +179,7 @@ class GFQuantityDiscountAddon extends GFFeedAddOn {
 	public function feed_list_columns() {
 		return array(
 			'feedName'  => esc_html__( 'Name', 'gf-quantity-discount' ),
-			'mytextbox' => esc_html__( 'My Textbox', 'gf-quantity-discount' ),
+			'mytextbox' => esc_html__( 'Gravity form Quantity Discount', 'gf-quantity-discount' ),
 		);
 	}
 
