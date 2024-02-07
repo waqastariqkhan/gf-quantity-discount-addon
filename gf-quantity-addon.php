@@ -20,9 +20,9 @@ class GF_Quantity_Discount_Bootstrap {
 		if ( ! method_exists( 'GFForms', 'include_feed_addon_framework' ) ) {
 			return;
 		}
-		
+
 		wp_enqueue_script( 'gf-quantity-addon-frontend', plugin_dir_url( __FILE__ ) . 'assets/js/gf-quantity-addon-frontend.js', array( 'jquery-ui-core', 'jquery-ui-tabs' ) );
-		
+
 		require_once 'class-gf-quantity-discount.php';
 		GFAddOn::register( 'GFQuantityDiscountAddon' );
 	}

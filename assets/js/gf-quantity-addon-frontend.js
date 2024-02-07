@@ -8,9 +8,13 @@ jQuery(document).ready(function () {
     function (event, form_id, current_page) {
       jQuery.ajax({
         type: "GET",
-        url: `/wp-json/gf/v2/forms/${form_id}/feeds`,
+        url: "/wp-admin/admin-ajax.php",
+        data: {
+          action: "get_feed_data",
+          form_id: form_id,
+        },
         success: function (response) {
-          reqRes = response;
+          reqRes = JSON.parse(response);
         },
         error: function (jqXHR, textStatus, errorThrown) {
           console.error("AJAX Error:", textStatus, errorThrown);
@@ -21,9 +25,9 @@ jQuery(document).ready(function () {
 
   setTimeout(function () {
     gform.addFilter("gform_product_total", function (total, formId) {
-      const minQuantity = reqRes[0].meta.minimum_quantity;
-      const discountAmount = reqRes[0].meta.discount_amount;
-      const discountType = reqRes[0].meta.discount_type;
+      const minQuantity = reqRes.feed[0].meta.minimum_quantity;
+      const discountAmount = reqRes.feed[0].meta.discount_amount;
+      const discountType = reqRes.feed[0].meta.discount_type;
       let discountValue = 0;
 
       if (discountType == "percent") {
