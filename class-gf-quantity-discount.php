@@ -1,27 +1,104 @@
 <?php
+/**
+ * Qunatity Addon using GF Feed-addon framework
+ *
+ * @since 1.0.0
+ *
+ * @package GF Feed Addon
+ */
 
 GFForms::include_feed_addon_framework();
 
-class GFQuantityDiscountAddon extends GFFeedAddOn {
+/**
+ * Class forQunatity Addon
+ *
+ * @since 1.0.0
+ *
+ * @package GF Feed Addon
+ */
+class GF_Quantity_Discount extends GFFeedAddOn {
 
-	protected $_version                  = GF_QUANTITY_DISCOUNT_ADDON_VERSION;
+	/**
+	 * Version of the addon
+	 *
+	 * @since 1.0.0
+	 *
+	 * @var string
+	 */
+	protected $_version = GF_QUANTITY_DISCOUNT_ADDON_VERSION;
+
+
+	/**
+	 * Minumim gravity forms version
+	 *
+	 * @since 1.0.0
+	 *
+	 * @var string
+	 */
 	protected $_min_gravityforms_version = '1.9.16';
-	protected $_slug                     = 'gf-quantity-discount';
-	protected $_path                     = 'gf-quantity-discount/gf-quantity-discount.php';
-	protected $_full_path                = __FILE__;
-	protected $_title                    = 'Gravity Forms Quantity Discount Add-on';
-	protected $_short_title              = 'Quantity Discount';
 
+	/**
+	 * Slug
+	 *
+	 * @since 1.0.0
+	 *
+	 * @var string
+	 */
+	protected $_slug = 'gf-quantity-discount';
+
+	/**
+	 * Path to the file
+	 *
+	 * @since 1.0.0
+	 *
+	 * @var string
+	 */
+	protected $_path = 'gf-quantity-discount/gf-quantity-discount.php';
+
+	/**
+	 * Path variable
+	 *
+	 * @since 1.0.0
+	 *
+	 * @var string
+	 */
+	protected $_full_path = __FILE__;
+
+	/**
+	 * Title of the Addon
+	 *
+	 * @since 1.0.0
+	 *
+	 * @var string
+	 */
+	protected $_title = 'Gravity Forms Quantity Discount Add-on';
+
+	/**
+	 * Short title for sidebar
+	 *
+	 * @since 1.0.0
+	 *
+	 * @var string
+	 */
+	protected $_short_title = 'Quantity Discount';
+
+	/**
+	 * Insatnce
+	 *
+	 * @since 1.0.0
+	 *
+	 * @var object
+	 */
 	private static $_instance = null;
 
 	/**
 	 * Get an instance of this class.
 	 *
-	 * @return GFQuantityDiscountAddon
+	 * @return GF_Quantity_Discount
 	 */
 	public static function get_instance() {
-		if ( self::$_instance == null ) {
-			self::$_instance = new GFQuantityDiscountAddon();
+		if ( null === self::$_instance ) {
+			self::$_instance = new GF_Quantity_Discount();
 		}
 
 		return self::$_instance;
@@ -48,12 +125,14 @@ class GFQuantityDiscountAddon extends GFFeedAddOn {
 
 
 	/**
-	 * Returns feed data requested via Ajax
+	 * Gets the form_id and returns the feed requested via ajax
+	 *
+	 * @return void
 	 */
 	public function get_feed_data() {
 		$form_id = isset( $_POST['form_id'] ) ? (int) $_POST['form_id'] : null;
 		$feed    = GFAPI::get_feeds( $form_id );
-		echo json_encode(
+		echo wp_json_encode(
 			array(
 				'feed' => $feed,
 			)
@@ -62,28 +141,32 @@ class GFQuantityDiscountAddon extends GFFeedAddOn {
 	}
 
 	/**
-	 * Calculates and Add Discount to the entry pages.
+	 * Calculates and adds discount
+	 *
+	 * @param array  $product_info  The array containing the product information. This array is in the following format.
+	 * @param Object $form         Object The form currently being processed.
+	 *
+	 * @return object $product_info
 	 */
-	public function calc_add_discount( $product_info, $form, $lead ) {
+	public function calc_add_discount( $product_info, $form ) {
 
 		$feed             = GFAPI::get_feeds( $form['ID'] );
 		$minimum_quantity = $feed[0]['meta']['minimum_quantity'];
 		$discount_amount  = $feed[0]['meta']['discount_amount'];
 		$discount_type    = $feed[0]['meta']['discount_type'];
-		
-		
-		$product = array_values($product_info['products'])[0];
-		
-		$price = $product['price'];
+
+		$product = array_values( $product_info['products'] )[0];
+
+		$price    = $product['price'];
 		$quantity = $product['quantity'];
 
 		$total_w_currency = (int) preg_replace( '/\..+$/i', '', preg_replace( '/[^0-9\.]/i', '', $price ) );
 
 		$total_order_value = (int) $total_w_currency * $quantity;
 
-		if ( $discount_type == 'percent' ) {
+		if ( 'percent' === $discount_type ) {
 			$discount_value = $total_order_value * ( $discount_amount / 100 );
-		} elseif ( $discount_type == 'cash' ) {
+		} elseif ( 'cash' === $discount_type ) {
 			$discount_value = $discount_amount;
 		}
 
@@ -225,7 +308,7 @@ class GFQuantityDiscountAddon extends GFFeedAddOn {
 		// Get the plugin settings.
 		$settings = $this->get_plugin_settings();
 
-		// Access a specific setting e.g. an api key
+		// Access a specific setting e.g. an api key.
 		$key = rgar( $settings, 'apiKey' );
 
 		return true;
