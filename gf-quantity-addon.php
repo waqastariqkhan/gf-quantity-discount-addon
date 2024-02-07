@@ -9,7 +9,7 @@ Author URI: http://www.rocketgenius.com
 */
 
 
-define( 'GF_SIMPLE_FEED_ADDON_VERSION', '2.0' );
+define( 'GF_QUANTITY_DISCOUNT_ADDON_VERSION;', '1.0' );
 
 add_action( 'gform_loaded', array( 'GF_Quantity_Discount_Bootstrap', 'load' ), 5 );
 
