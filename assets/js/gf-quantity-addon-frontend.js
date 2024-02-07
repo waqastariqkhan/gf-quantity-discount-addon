@@ -26,9 +26,6 @@ jQuery(document).ready(function () {
       const discountType = reqRes[0].meta.discount_type;
       let discountValue = 0;
 
-      console.log(minQuantity);
-      console.log(discountAmount);
-
       if (discountType == "percent") {
         discountValue = total * (discountAmount / 100);
       } else if (discountType == "cash") {
