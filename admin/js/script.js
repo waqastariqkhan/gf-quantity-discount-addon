@@ -6,12 +6,17 @@ jQuery(function ($) {
   let couponDetails = [];
 
   $(document).on("click", "#gform-settings-save", function (e) {
+    // Reset index of all the coupon values before save
     $("input[name='coupon-discount[]']").each(function (index) {
       $(this).attr("id", "coupon-discount-" + (index - 1));
     });
 
     $("input[name='coupon-name[]']").each(function (index) {
       $(this).attr("id", "coupon-name-" + (index - 1));
+    });
+
+    $("input[name='coupon-minimum-quantity[]']").each(function (index) {
+      $(this).attr("id", "coupon-minimum-quantity-" + (index - 1));
     });
 
     let element = {};
@@ -21,6 +26,7 @@ jQuery(function ($) {
       element = {
         cN: $(`#coupon-name-${i}`).val(),
         cD: $(`#coupon-discount-${i}`).val(),
+        cQ: $(`#coupon-minimum-quantity-${i}`).val(),
       };
 
       couponDetails.push(element);
@@ -34,13 +40,24 @@ jQuery(document).ready(function ($) {
 
   couponDetails.forEach((currentElement, i) => {
     $("tbody.container").append(`<tr class="template row">
-    <td width="40%">
-        <input type="text" name="coupon-name[]" value=${currentElement.cN} id="coupoun-name-${i}" />
+    <td width="50%">
+        <input type="text" name="coupon-name[]" value=${
+          currentElement.cN ? currentElement.cN : ""
+        } id="coupoun-name-${i}" />
     </td>
-    <td width="40%">
-        <input type="text" name="coupon-discount[]" value=${currentElement.cD} id="coupon-discount-${i}" />
+    <td width="15%">
+        <input type="number" name="coupon-discount[]" value=${
+          currentElement.cD ? currentElement.cD : ""
+        } id="coupon-discount-${i}" />
     </td>
-    <td width="10%"><span id="removebutton" class="remove">Remove</span></td>
+    <td width="15%">
+        <input type="number" name="coupon-minimum-quantity[]" value=${
+          currentElement.cQ ? currentElement.cQ : ""
+        }  id="coupon-minimum-quantity-${i}" />
+    </td>
+    <td width="20%">
+    <span id="removebutton" class="remove">Remove</span>
+    </td>
     </tr>`);
   });
 });

@@ -1,0 +1,27 @@
+span.add {
+  background-color: #04aa6d;
+  color: white;
+  padding: 7px 20px 5px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+  text-align: center;
+  cursor: pointer;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+span.remove {
+  background-color: #9d0000;
+  color: white;
+  padding: 7px 10px 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  text-align: center;
+  cursor: pointer;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+tr.add-button-row td {
+  padding-bottom: 20px;
+}
