@@ -129,8 +129,12 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 	
 	
 	public function enqueue_admin_js() {
-		wp_enqueue_script( 'gf-quantity-addon-admin', plugin_dir_url( __FILE__ ) . 'admin/js/script.js', array( 'jquery-ui-core', 'jquery-ui-tabs' ), 0.1, true );
-		wp_enqueue_script( 'gf-reapeatable-fields-admin', plugin_dir_url( __FILE__ ) . 'admin/js/repeatable-fields.js', array( 'jquery-ui-core', 'jquery-ui-tabs' ), 0.1, true );
+		wp_enqueue_script( 'gf-quantity-addon-admin', plugin_dir_url( __FILE__ ) . 'admin/assets/js/script.js', array( 'jquery-ui-core', 'jquery-ui-tabs' ), 0.1, true );
+		wp_enqueue_script( 'gf-reapeatable-fields-admin', plugin_dir_url( __FILE__ ) . 'admin/assets/js/repeatable-fields.js', array( 'jquery-ui-core', 'jquery-ui-tabs' ), 0.1, true );
+		wp_register_style( 'gf-quantity-addon-admin-style', plugin_dir_url( __FILE__ ) . 'admin/assets/css/style.css', false, '1.0.0' );
+		wp_enqueue_style( 'gf-quantity-addon-admin-style' );
+		wp_enqueue_style( 'wp-ld-transcript-toaster-css', plugin_dir_url( __FILE__ ) . 'admin/assets/toaster/toastr.min.css', array(), false );
+		wp_enqueue_script( 'wp-ld-transcript-toaster', plugin_dir_url( __FILE__ ) . 'admin/assets/toaster/toastr.min.js', array( 'jquery-ui-core', 'jquery-ui-tabs' ) );
 	}
 
 	/**
@@ -150,15 +154,22 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 	}
 	
 	
-	public function searchCoupon($couponCode, $coupon_details) {
-		$couponValue = null;
+	/**
+	 * Searches the coupon details array for user entered coupon and returns its value
+	 *
+	 * @param string $couponCode
+	 * @param array  $coupon_details
+	 * @return list  [$coupon_value, $coupon_quantity]
+	 */
+	public function searchCoupon($coupon_code, $coupon_details) {
 		foreach ($coupon_details as $coupon) {
-			if ($coupon['cN'] === $couponCode) {
-				$couponValue = $coupon['cD'];
+			if ($coupon['cN'] === $coupon_code) {
+				$coupon_value = $coupon['cD'];
+				$coupon_quantity = $coupon['cQ'];
 				break; // exit the loop if the coupon is found
 			}
 		}
-		return $couponValue;
+		return [$coupon_value, $coupon_quantity];
 	}
 
 
@@ -178,23 +189,15 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 		$discount_type           = $feed[0]['meta']['discount_type'];
 		$discount_method    	 = $feed[0]['meta']['discount_method'];
 		$coupon_details    		 = $feed[0]['meta']['coupon_details'];
-
-		$product = array_values( $product_info['products'] )[0];
-
-		$price    = $product['price'];
-		$quantity = $product['quantity'];
-
-		$total_w_currency = (int) preg_replace( '/\..+$/i', '', preg_replace( '/[^0-9\.]/i', '', $price ) );
-		
-		$total_order_value = (int) $total_w_currency * $quantity;
-		
-		error_log( "Field ID = " . print_r(  $entry , true));
-		
+		$product_id				 = (int) floatval($feed[0]['meta']['mappedFields_product_name']);
+		$product 		  	     = $product_info['products'][$product_id];
+		$total_w_currency 	     = (int) preg_replace( '/\..+$/i', '', preg_replace( '/[^0-9\.]/i', '', $product['price'] ) );
+		$total_product_value     = (int) $total_w_currency * $product['quantity'];			
 		
 		if ( 'quantity_discount' === $discount_method ) {
-			if ( $quantity > $minimum_quantity ) {
+			if ( $product['quantity'] >= $minimum_quantity ) {
 				if ( 'percent' === $discount_type ) {
-					$discount_value = $total_order_value * ( $minimum_discount_value / 100 );
+					$discount_value = $total_product_value * ( $minimum_discount_value / 100 );
 				} elseif ( 'cash' === $discount_type ) {
 					$discount_value = $minimum_discount_value;
 				}
@@ -203,18 +206,23 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 		else if ( 'coupon_discount' === $discount_method  ){
 			$coupon_field = GFAPI::get_fields_by_type( $form, 'coupon' );
 			$coupon_entry = $entry[$coupon_field[0]->id];
-			$coupon_value = $this->searchCoupon($coupon_entry, $coupon_details );
-			if ( 'percent' === $discount_type ) {
-				$discount_value = $total_order_value * ( $coupon_value / 100 );
-			} elseif ( 'cash' === $discount_type ) {
-				$discount_value = $coupon_value;
+			list($coupon_value, $coupon_quantity) = $this->searchCoupon($coupon_entry, $coupon_details);
+			
+			if( $product['quantity'] >= $coupon_quantity ) {
+				if ( 'percent' === $discount_type ) {
+					$discount_value = $total_product_value * ( $coupon_value / 100 );
+				} elseif ( 'cash' === $discount_type ) {
+					$discount_value = $coupon_value;
+				}
 			}
 		}
 		
-		$discount_name = $discount_method === 'coupon_discount' ? 'Coupon Discount' : 'Quntity Discount';
+		$discount_name = $discount_method === 'coupon_discount' ? 'Coupon ' . $coupon_entry : 'Quntity Discount';
+		
+		$discount_symbol = $discount_type === 'percent' ? '%' : '$';
 
 		$product_info['products']['Discount'] = array(
-			'name'      => $discount_name,
+			'name'      => $discount_name . ' @ ' . $product['name'] . ' - ' . $coupon_value . $discount_symbol,
 			'price'     => - $discount_value,
 			'quantity'  => 1,
 			'isProduct' => false,
@@ -272,7 +280,6 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 						'class' => 'small',
 					),
 					
-					
 					array(
 						'label' => esc_html__( 'Discount Method', 'gf-quantity-discount' ),
 						'name'          => 'discount_method',
@@ -293,7 +300,6 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 						),
 					),
 					
-					
 					array(
 						'label'    => 'Discount Type',
 						'type'     => 'select',
@@ -312,6 +318,18 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 						),
 					),
 					
+					array(
+						'name'      => 'mappedFields',
+						'label'     => esc_html__( 'Select Product (Name) field the feed should be applied to', 'gf-quantity-discount' ),
+						'type'      => 'field_map',
+						'field_map' => array(
+							array(
+								'name'     => 'product_name',
+								'label'    => esc_html__( 'Product Name', 'gf-quantity-discount' ),
+								'required' => 0,
+							),
+						),
+					),
 				),
 			),
 			
@@ -365,7 +383,7 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 				'fields' => array(	
 								  
 					array(
-						'label' => 'Coupon Details',
+						'label' => 'Add coupons and associated values',
 						'type'  => 'coupon_field_type',
 						'name'  => 'feed_coupon_field',
 					),		
@@ -390,19 +408,27 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 			<div class="repeat">
 				<table class="wrapper" width="100%">
 					<thead>
-						<tr>
+						<tr class="add-button-row">
 							<td width="10%" colspan="4"><span class="add">Add</span></td>
+						</tr>
+						<tr>
+							<th> Coupon Name </th>
+							<th> Coupon Discount Value </th>
+							<th> Minimum Quantity </th>
 						</tr>
 					</thead>
 					<tbody class="container">
 						<tr class="template row">				
-							<td width="40%">
-								<input type="text" name="coupon-name[]" id="coupoun-name-{{row-count-placeholder}}" />
+							<td width="50%">
+								<input type="text" placeholder="Coupon Name" name="coupon-name[]" id="coupoun-name-{{row-count-placeholder}}" />
 							</td>
-							<td width="40%">
-								<input type="text" name="coupon-discount[]" id="coupon-discount-{{row-count-placeholder}}" />
+							<td width="15%">
+								<input type="number" placeholder="Discount Value" name="coupon-discount[]" id="coupon-discount-{{row-count-placeholder}}" />
 							</td>
-							<td width="10%"><span id="removebutton" class="remove">Remove</span></td>
+							<td width="15%">
+								<input type="number" placeholder="Minimum Qunatity" name="coupon-minimum-quantity[]" id="coupon-minimum-quantity-{{row-count-placeholder}}" />
+							</td>
+							<td width="20%"><span id="removebutton" class="remove">Remove</span></td>
 						</tr>
 					</tbody>
 				</table>
@@ -411,7 +437,7 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 			$html = ob_get_clean(); // Get the buffered content and clean the buffer
 			return $html;
 	}
-
+	
 	/**
 	 * Configures which columns should be displayed on the feed list page.
 	 *

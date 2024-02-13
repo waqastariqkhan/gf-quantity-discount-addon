@@ -22,54 +22,79 @@ jQuery(document).ready(function ($) {
   });
 
   function searchCoupon(couponCode, coupon_details) {
-    var couponValue = null;
+    let couponValue,
+      couponQuantity = null;
+
     $.each(coupon_details, function (index, coupon) {
-      console.log(coupon);
       if (coupon.cN === couponCode) {
         couponValue = coupon.cD;
-        return false; // exit the loop if the coupon is found
+        couponQuantity = coupon.cQ;
+        return false;
       }
     });
-    return couponValue;
+    return [couponValue, couponQuantity];
+  }
+
+  function getActiveProductTotal(productID, formID) {
+    let productQuantity = $(`#input_${formID}_${productID}_1`).val();
+    let productPrice = $(`#ginput_base_price_${formID}_${productID}`).attr(
+      "value"
+    );
+    productPrice = parseInt(productPrice.replace("$", ""), 10);
+    let total = productPrice * productQuantity;
+    return [total, productQuantity];
   }
 
   setTimeout(function () {
     let discountValue = 0;
-    let coupon_value = 0;
+    let couponValue,
+      couponQuantity = 0;
     const minQuantity = reqRes.feed[0].meta.minimum_quantity;
     const quantityDiscountValue = reqRes.feed[0].meta.discount_amount;
     const discountType = reqRes.feed[0].meta.discount_type;
     const discount_method = reqRes.feed[0].meta.discount_method;
     let coupon_details = reqRes.feed[0].meta.coupon_details;
+    let productID = Math.floor(reqRes.feed[0].meta.mappedFields_product_name);
+    const formID = $(".gform_wrapper form").attr("data-formid");
 
     $(document).on("click", "#gf_coupon_button", function (e) {
       if (discount_method === "coupon_discount") {
         const inputCoupon = $(".gf_coupon_code_entry").val();
         $(".gf_coupon_code").val(inputCoupon).trigger("change");
-        coupon_value = searchCoupon(inputCoupon, coupon_details);
-        if (coupon_value) {
-          gformCalculateTotalPrice(
-            $(".gform_wrapper form").attr("data-formid")
+        [couponValue, couponQuantity] = searchCoupon(
+          inputCoupon,
+          coupon_details
+        );
+        if (couponValue) {
+          let [total, activeProductQuantity] = getActiveProductTotal(
+            productID,
+            formID
           );
-          $(this).prop("disabled", true);
+          if (Number(activeProductQuantity) >= couponQuantity) {
+            if (discountType == "percent") {
+              discountValue = total * (couponValue / 100);
+            } else if (discountType == "cash") {
+              discountValue = couponValue;
+            }
+            gformCalculateTotalPrice(formID);
+            $(this).prop("disabled", true);
+          }
         }
       }
     });
 
     gform.addFilter("gform_product_total", function (total, formId) {
       if (discount_method === "quantity_discount") {
-        if (Number($(".ginput_quantity").val()) >= minQuantity) {
+        let [ptotal, activeProductQuantity] = getActiveProductTotal(
+          productID,
+          formID
+        );
+        if (Number(activeProductQuantity) >= minQuantity) {
           if (discountType == "percent") {
-            discountValue = total * (quantityDiscountValue / 100);
+            discountValue = ptotal * (quantityDiscountValue / 100);
           } else if (discountType == "cash") {
             discountValue = quantityDiscountValue;
           }
-        }
-      } else if (discount_method === "coupon_discount") {
-        if (discountType == "percent") {
-          discountValue = total * (coupon_value / 100);
-        } else if (discountType == "cash") {
-          discountValue = coupon_value;
         }
       }
 
@@ -78,10 +103,3 @@ jQuery(document).ready(function ($) {
     });
   }, 2000);
 });
-
-// const pQuantityIdentifier =
-//   reqRes.feed[0].meta.mappedFields_product_quantity;
-// const pPricetIdentifier = reqRes.feed[0].meta.mappedFields_product_price;
-
-// const Quantity = $(`[name="input_${pQuantityIdentifier}"]`).val();
-// const productPrice = $(`[name="input_${pPricetIdentifier}`).val();
