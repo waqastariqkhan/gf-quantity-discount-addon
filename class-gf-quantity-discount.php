@@ -129,10 +129,12 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 	
 	
 	public function enqueue_admin_js() {
-		wp_enqueue_script( 'gf-quantity-addon-admin', plugin_dir_url( __FILE__ ) . 'admin/js/script.js', array( 'jquery-ui-core', 'jquery-ui-tabs' ), 0.1, true );
-		wp_enqueue_script( 'gf-reapeatable-fields-admin', plugin_dir_url( __FILE__ ) . 'admin/js/repeatable-fields.js', array( 'jquery-ui-core', 'jquery-ui-tabs' ), 0.1, true );
-		wp_register_style( 'gf-quantity-addon-admin-style', plugin_dir_url( __FILE__ ) . 'admin/css/style.css', false, '1.0.0' );
+		wp_enqueue_script( 'gf-quantity-addon-admin', plugin_dir_url( __FILE__ ) . 'admin/assets/js/script.js', array( 'jquery-ui-core', 'jquery-ui-tabs' ), 0.1, true );
+		wp_enqueue_script( 'gf-reapeatable-fields-admin', plugin_dir_url( __FILE__ ) . 'admin/assets/js/repeatable-fields.js', array( 'jquery-ui-core', 'jquery-ui-tabs' ), 0.1, true );
+		wp_register_style( 'gf-quantity-addon-admin-style', plugin_dir_url( __FILE__ ) . 'admin/assets/css/style.css', false, '1.0.0' );
 		wp_enqueue_style( 'gf-quantity-addon-admin-style' );
+		wp_enqueue_style( 'wp-ld-transcript-toaster-css', plugin_dir_url( __FILE__ ) . 'admin/assets/toaster/toastr.min.css', array(), false );
+		wp_enqueue_script( 'wp-ld-transcript-toaster', plugin_dir_url( __FILE__ ) . 'admin/assets/toaster/toastr.min.js', array( 'jquery-ui-core', 'jquery-ui-tabs' ) );
 	}
 
 	/**
@@ -318,7 +320,7 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 					
 					array(
 						'name'      => 'mappedFields',
-						'label'     => esc_html__( 'Map Fields', 'gf-quantity-discount' ),
+						'label'     => esc_html__( 'Select Product (Name) field the feed should be applied to', 'gf-quantity-discount' ),
 						'type'      => 'field_map',
 						'field_map' => array(
 							array(
@@ -381,7 +383,7 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 				'fields' => array(	
 								  
 					array(
-						'label' => 'Coupon Details',
+						'label' => 'Add coupons and associated values',
 						'type'  => 'coupon_field_type',
 						'name'  => 'feed_coupon_field',
 					),		
@@ -408,6 +410,11 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 					<thead>
 						<tr class="add-button-row">
 							<td width="10%" colspan="4"><span class="add">Add</span></td>
+						</tr>
+						<tr>
+							<th> Coupon Name </th>
+							<th> Coupon Discount Value </th>
+							<th> Minimum Quantity </th>
 						</tr>
 					</thead>
 					<tbody class="container">
