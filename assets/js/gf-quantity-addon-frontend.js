@@ -57,14 +57,21 @@ jQuery(document).ready(function ($) {
     let discountValue = 0;
     let couponValue,
       couponQuantity = 0;
-    const minQuantity = reqRes.feed[0].meta.minimum_quantity;
-    const quantityDiscountValue = reqRes.feed[0].meta.discount_amount;
-    const discountType = reqRes.feed[0].meta.discount_type;
-    const discount_method = reqRes.feed[0].meta.discount_method;
-    let coupon_details = reqRes.feed[0].meta.coupon_details;
-    let productID = Math.floor(reqRes.feed[0].meta.mappedFields_product_name);
+
+    const gfDiscountFeed = $.grep(reqRes.feed, function (obj) {
+      return obj.addon_slug === "gf-quantity-discount";
+    });
+
+    const minQuantity = gfDiscountFeed[0].meta.minimum_quantity;
+    const quantityDiscountValue = gfDiscountFeed[0].meta.discount_amount;
+    const discountType = gfDiscountFeed[0].meta.discount_type;
+    const discount_method = gfDiscountFeed[0].meta.discount_method;
+    let coupon_details = gfDiscountFeed[0].meta.coupon_details;
+    let productID = Math.floor(
+      gfDiscountFeed[0].meta.mappedFields_product_name
+    );
     let productQuantityField = Math.floor(
-      reqRes.feed[0].meta.mappedFields_product_quantity
+      gfDiscountFeed[0].meta.mappedFields_product_quantity
     );
     const formID = $(".gform_wrapper form").attr("data-formid");
 
