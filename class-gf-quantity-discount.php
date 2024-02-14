@@ -143,11 +143,13 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 	 * @return void
 	 */
 	public function get_feed_data() {
-		$form_id = isset( $_POST['form_id'] ) ? (int) $_POST['form_id'] : null;
-		$feed    = GFAPI::get_feeds( $form_id );
+		$form_id = isset( $_GET['form_id'] ) ? (int) $_GET['form_id'] : null;
+		$feeds    = GFAPI::get_feeds( null, $form_id );
+		$form_field = GFAPI::get_form( $form_id );
 		echo wp_json_encode(
 			array(
-				'feed' => $feed,
+				'feed' => $feeds,
+				'field' => $form_field['fields']
 			)
 		);
 		wp_die();
@@ -183,7 +185,7 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 	 */
 	public function calc_add_discount( $product_info, $form, $entry ) {
 
-		$feed             		 = GFAPI::get_feeds( $form['ID'] );
+		$feed             		 = GFAPI::get_feeds( null, $form['id'] );
 		$minimum_quantity 		 = $feed[0]['meta']['minimum_quantity'];
 		$minimum_discount_value  = $feed[0]['meta']['minimum_discount_value'];
 		$discount_type           = $feed[0]['meta']['discount_type'];
@@ -328,6 +330,16 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 								'label'    => esc_html__( 'Product Name', 'gf-quantity-discount' ),
 								'required' => 0,
 							),
+							array(
+								'name'     => 'product_quantity',
+								'label'    => esc_html__( 'Product Quantity', 'gf-quantity-discount' ),
+								'required' => 0,
+							),
+							array(
+								'name'     => 'product_price',
+								'label'    => esc_html__( 'Product Price', 'gf-quantity-discount' ),
+								'required' => 0,
+							),
 						),
 					),
 				),
@@ -412,9 +424,9 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 							<td width="10%" colspan="4"><span class="add">Add</span></td>
 						</tr>
 						<tr>
-							<th> Coupon Name </th>
-							<th> Coupon Discount Value </th>
-							<th> Minimum Quantity </th>
+							<th> <?php esc_html__( 'Coupon Details', 'gf-quantity-discount' ) ?></th>
+							<th> <?php esc_html__( 'Coupon Discount Value ', 'gf-quantity-discount' ) ?> </th>
+							<th> <?php esc_html__( 'Minimum Quantity', 'gf-quantity-discount' ) ?></th>
 						</tr>
 					</thead>
 					<tbody class="container">

@@ -3,13 +3,13 @@
 jQuery(document).ready(function ($) {
   let reqRes = null;
 
-  $(document).on("gform_post_render", function (event, form_id, current_page) {
+  $(document).on("gform_post_render", function (event, formID, current_page) {
     $.ajax({
       type: "GET",
       url: "/wp-admin/admin-ajax.php",
       data: {
         action: "get_feed_data",
-        form_id: form_id,
+        form_id: formID,
       },
       success: function (response) {
         reqRes = JSON.parse(response);
@@ -37,12 +37,20 @@ jQuery(document).ready(function ($) {
 
   function getActiveProductTotal(productID, formID) {
     let productQuantity = $(`#input_${formID}_${productID}_1`).val();
+
     let productPrice = $(`#ginput_base_price_${formID}_${productID}`).attr(
       "value"
     );
     productPrice = parseInt(productPrice.replace("$", ""), 10);
     let total = productPrice * productQuantity;
     return [total, productQuantity];
+  }
+
+  function getRigpassProductTotal() {
+    let total =
+      Number(localStorage.getItem("productPrice")) *
+      Number(localStorage.getItem("productQuantity"));
+    return [total, Number(localStorage.getItem("productQuantity"))];
   }
 
   setTimeout(function () {
@@ -55,7 +63,31 @@ jQuery(document).ready(function ($) {
     const discount_method = reqRes.feed[0].meta.discount_method;
     let coupon_details = reqRes.feed[0].meta.coupon_details;
     let productID = Math.floor(reqRes.feed[0].meta.mappedFields_product_name);
+    let productQuantityField = Math.floor(
+      reqRes.feed[0].meta.mappedFields_product_quantity
+    );
     const formID = $(".gform_wrapper form").attr("data-formid");
+
+    let fieldLength = reqRes.field.length;
+    let productPrice,
+      productQuantity = 0;
+
+    for (let i = 0; i < fieldLength; i++) {
+      if (reqRes.field[i].id === productID) {
+        productPrice = parseInt(
+          reqRes.field[i].choices[0].price.replace("$", ""),
+          10
+        );
+        localStorage.setItem("productPrice", productPrice);
+      }
+    }
+
+    $(document).on("click", ".gform_next_button", function (e) {
+      productQuantity = $(`#input_${formID}_${productQuantityField}`)
+        .find(":selected")
+        .val();
+      localStorage.setItem("productQuantity", productQuantity);
+    });
 
     $(document).on("click", "#gf_coupon_button", function (e) {
       if (discount_method === "coupon_discount") {
@@ -66,10 +98,7 @@ jQuery(document).ready(function ($) {
           coupon_details
         );
         if (couponValue) {
-          let [total, activeProductQuantity] = getActiveProductTotal(
-            productID,
-            formID
-          );
+          let [total, activeProductQuantity] = getRigpassProductTotal();
           if (Number(activeProductQuantity) >= couponQuantity) {
             if (discountType == "percent") {
               discountValue = total * (couponValue / 100);
