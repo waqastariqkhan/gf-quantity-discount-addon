@@ -173,6 +173,24 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 		}
 		return [$coupon_value, $coupon_quantity];
 	}
+	
+	
+	/**
+	 * Searches Gravity form Feed Addon
+	 *
+	 * @param string $couponCode
+	 * @param array  $coupon_details
+	 * @return list  [$coupon_value, $coupon_quantity]
+	 */
+	function filterArrayByAddonSlug($dataArray, $addonSlug) {
+		$filteredArray = [];
+		foreach ($dataArray as $item) {
+			if ($item['addon_slug'] === $addonSlug) {
+				$filteredArray[] = $item;
+			}
+		}
+		return $filteredArray;
+	}
 
 
 	/**
@@ -186,6 +204,7 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 	public function calc_add_discount( $product_info, $form, $entry ) {
 
 		$feed             		 = GFAPI::get_feeds( null, $form['id'] );
+		$feed 					 = $this->filterArrayByAddonSlug($feed, 'gf-quantity-discount');
 		$minimum_quantity 		 = $feed[0]['meta']['minimum_quantity'];
 		$minimum_discount_value  = $feed[0]['meta']['minimum_discount_value'];
 		$discount_type           = $feed[0]['meta']['discount_type'];
