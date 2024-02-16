@@ -164,6 +164,9 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 	 * @return list  [$coupon_value, $coupon_quantity]
 	 */
 	public function searchCoupon($coupon_code, $coupon_details) {
+		$coupon_value 	 = 0;
+		$coupon_quantity = 0;
+		
 		foreach ($coupon_details as $coupon) {
 			if ($coupon['cN'] === $coupon_code) {
 				$coupon_value = $coupon['cD'];
@@ -178,9 +181,9 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 	/**
 	 * Searches Gravity form Feed Addon
 	 *
-	 * @param string $couponCode
-	 * @param array  $coupon_details
-	 * @return list  [$coupon_value, $coupon_quantity]
+	 * @param string $dataArray
+	 * @param array  $addonSlug
+	 * @return list  $filterd array
 	 */
 	function filterArrayByAddonSlug($dataArray, $addonSlug) {
 		$filteredArray = [];
@@ -204,13 +207,14 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 	public function calc_add_discount( $product_info, $form, $entry ) {
 
 		$feed             		 = GFAPI::get_feeds( null, $form['id'] );
-		$feed 					 = $this->filterArrayByAddonSlug($feed, 'gf-quantity-discount');
-		$minimum_quantity 		 = $feed[0]['meta']['minimum_quantity'];
-		$minimum_discount_value  = $feed[0]['meta']['minimum_discount_value'];
-		$discount_type           = $feed[0]['meta']['discount_type'];
-		$discount_method    	 = $feed[0]['meta']['discount_method'];
-		$coupon_details    		 = $feed[0]['meta']['coupon_details'];
-		$product_id				 = (int) floatval($feed[0]['meta']['mappedFields_product_name']);
+		$feed 					 = $this->filterArrayByAddonSlug( $feed, 'gf-quantity-discount' );
+		$feed 					 = array_values( $feed )[0];
+		$minimum_quantity 		 = $feed['meta']['minimum_quantity'];
+		$minimum_discount_value  = $feed['meta']['minimum_discount_value'];
+		$discount_type           = $feed['meta']['discount_type'];
+		$discount_method    	 = $feed['meta']['discount_method'];
+		$coupon_details    		 = $feed['meta']['coupon_details'];
+		$product_id				 = (int) floatval($feed['meta']['mappedFields_product_name']);
 		$product 		  	     = $product_info['products'][$product_id];
 		$total_w_currency 	     = (int) preg_replace( '/\..+$/i', '', preg_replace( '/[^0-9\.]/i', '', $product['price'] ) );
 		$total_product_value     = (int) $total_w_currency * $product['quantity'];			
