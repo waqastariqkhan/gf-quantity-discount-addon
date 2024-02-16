@@ -447,9 +447,9 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 							<td width="10%" colspan="4"><span class="add">Add</span></td>
 						</tr>
 						<tr>
-							<th> <?php esc_html__( 'Coupon Details', 'gf-quantity-discount' ) ?></th>
-							<th> <?php esc_html__( 'Coupon Discount Value ', 'gf-quantity-discount' ) ?> </th>
-							<th> <?php esc_html__( 'Minimum Quantity', 'gf-quantity-discount' ) ?></th>
+							<th> <?php echo esc_html__( 'Coupon Details', 'gf-quantity-discount' ) ?></th>
+							<th> <?php echo esc_html__( 'Coupon Discount Value ', 'gf-quantity-discount' ) ?> </th>
+							<th> <?php echo esc_html__( 'Minimum Quantity', 'gf-quantity-discount' ) ?></th>
 						</tr>
 					</thead>
 					<tbody class="container">
