@@ -73,19 +73,38 @@ jQuery(document).ready(function ($) {
     let productQuantityField = Math.floor(
       gfDiscountFeed[0].meta.mappedFields_product_quantity
     );
+
     const formID = $(".gform_wrapper form").attr("data-formid");
 
     let fieldLength = reqRes.field.length;
     let productPrice,
       productQuantity = 0;
 
+    let quantityFieldType = null;
+
     for (let i = 0; i < fieldLength; i++) {
       if (reqRes.field[i].id === productID) {
-        productPrice = parseInt(
-          reqRes.field[i].choices[0].price.replace("$", ""),
-          10
-        );
+        if (reqRes.field[i].inputType === "radio") {
+          productPrice = parseInt(
+            reqRes.field[i].choices[0].price.replace("$", ""),
+            10
+          );
+        } else if (reqRes.field[i].inputType === "singleproduct") {
+          productPrice = parseInt(
+            reqRes.field[i].basePrice.replace("$", ""),
+            10
+          );
+        }
         localStorage.setItem("productPrice", productPrice);
+      }
+
+      if (reqRes.field[i].id === productQuantityField) {
+        console.log("here");
+        if (reqRes.field[i].inputType === "number") {
+          quantityFieldType = "input";
+        } else if (reqRes.field[i].inputType === "select") {
+          quantityFieldType = "select";
+        }
       }
     }
 
@@ -93,6 +112,18 @@ jQuery(document).ready(function ($) {
       productQuantity = $(`#input_${formID}_${productQuantityField}`)
         .find(":selected")
         .val();
+      localStorage.setItem("productQuantity", productQuantity);
+    });
+
+    if (gfDiscountFeed[0].meta.mappedFields_product_quantity)
+      var selector =
+        quantityFieldType +
+        '[name="input_' +
+        gfDiscountFeed[0].meta.mappedFields_product_quantity +
+        '"]';
+
+    $(selector).on("change", function () {
+      productQuantity = $(this).val();
       localStorage.setItem("productQuantity", productQuantity);
     });
 
@@ -106,6 +137,7 @@ jQuery(document).ready(function ($) {
         );
         if (couponValue) {
           let [total, activeProductQuantity] = getRigpassProductTotal();
+          console.log(total, activeProductQuantity);
           if (Number(activeProductQuantity) >= couponQuantity) {
             if (discountType == "percent") {
               discountValue = total * (couponValue / 100);
