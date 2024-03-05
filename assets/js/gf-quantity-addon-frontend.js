@@ -80,6 +80,7 @@ jQuery(document).ready(function ($) {
     let productPrice,
       productQuantity = 0;
     let showBreakdown = false;
+    let showError = true;
     let inputCoupon = null;
 
     let quantityFieldType = null;
@@ -147,15 +148,19 @@ jQuery(document).ready(function ($) {
             }
             gformCalculateTotalPrice(formID);
             $(this).prop("disabled", true);
+            $(this).addClass("disabled-button");
             showBreakdown = true;
             if ($(".invalid-coupon").length) {
               $(".invalid-coupon").remove();
             }
           }
         } else {
-          $("#gf_coupons_container_1").append(
-            "<span class='invalid-coupon'> Invalid Coupon Code. Please recheck your coupon code and re-enter it. </span>"
-          );
+          if (showError) {
+            $("#gf_coupons_container_1").append(
+              "<span class='invalid-coupon'> Invalid Coupon Code. Please recheck your coupon code and re-enter it. </span>"
+            );
+          }
+          showError = false;
         }
       }
     });

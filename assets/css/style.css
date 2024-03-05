@@ -20,3 +20,13 @@
 #gf_coupon_info {
   margin-bottom: 20px;
 }
+
+.disabled-button {
+  /* background: grey;
+  color: white; */
+  opacity: 0.5;
+}
+
+.disabled-button:hover {
+  color: #c36 !important;
+}
