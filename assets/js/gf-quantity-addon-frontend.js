@@ -79,6 +79,8 @@ jQuery(document).ready(function ($) {
     let fieldLength = reqRes.field.length;
     let productPrice,
       productQuantity = 0;
+    let showBreakdown = false;
+    let inputCoupon = null;
 
     let quantityFieldType = null;
 
@@ -129,7 +131,7 @@ jQuery(document).ready(function ($) {
 
     $(document).on("click", "#gf_coupon_button", function (e) {
       if (discount_method === "coupon_discount") {
-        const inputCoupon = $(".gf_coupon_code_entry").val();
+        inputCoupon = $(".gf_coupon_code_entry").val();
         $(".gf_coupon_code").val(inputCoupon).trigger("change");
         [couponValue, couponQuantity] = searchCoupon(
           inputCoupon,
@@ -137,7 +139,6 @@ jQuery(document).ready(function ($) {
         );
         if (couponValue) {
           let [total, activeProductQuantity] = getRigpassProductTotal();
-          console.log(total, activeProductQuantity);
           if (Number(activeProductQuantity) >= couponQuantity) {
             if (discountType == "percent") {
               discountValue = total * (couponValue / 100);
@@ -146,12 +147,37 @@ jQuery(document).ready(function ($) {
             }
             gformCalculateTotalPrice(formID);
             $(this).prop("disabled", true);
+            showBreakdown = true;
+            if ($(".invalid-coupon").length) {
+              $(".invalid-coupon").remove();
+            }
           }
+        } else {
+          $("#gf_coupons_container_1").append(
+            "<span class='invalid-coupon'> Invalid Coupon Code. Please recheck your coupon code and re-enter it. </span>"
+          );
         }
       }
     });
 
     gform.addFilter("gform_product_total", function (total, formId) {
+      if (showBreakdown) {
+        $(".gfield_total").prepend(`
+        <div class="cart">
+        <div class="cart-item">
+          <span>Subtotal:</span> $${total}
+        </div>
+        <div class="cart-item">
+          <span>Discount code ${inputCoupon}:
+          <span class="discount-value"> 
+                -$${discountValue}
+                </span> 
+                </span> 
+        </div>
+      </div>`);
+        showBreakdown = false;
+      }
+
       if (discount_method === "quantity_discount") {
         let [ptotal, activeProductQuantity] = getActiveProductTotal(
           productID,

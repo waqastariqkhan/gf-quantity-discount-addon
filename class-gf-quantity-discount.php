@@ -217,8 +217,11 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 		$product_id				 = (int) floatval($feed['meta']['mappedFields_product_name']);
 		$product 		  	     = $product_info['products'][$product_id];
 		$total_w_currency 	     = (int) preg_replace( '/\..+$/i', '', preg_replace( '/[^0-9\.]/i', '', $product['price'] ) );
-		$total_product_value     = (int) $total_w_currency * $product['quantity'];			
+		$total_product_value     = (int) $total_w_currency * $product['quantity'];	
 		
+		//$this->log_debug( __METHOD__ . '(): feed => ' . print_r( $total_product_value, true ) );		
+		GFCommon::log_debug( 'gform_is_value_match: $field_value => ' . print_r( $feed , 1 ) );
+
 		if ( 'quantity_discount' === $discount_method ) {
 			if ( $product['quantity'] >= $minimum_quantity ) {
 				if ( 'percent' === $discount_type ) {
