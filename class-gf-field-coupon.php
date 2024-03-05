@@ -81,7 +81,7 @@ class GF_Field_Coupon extends GF_Field {
 		$input = "<div class='ginput_container' id='gf_coupons_container_{$form_id}'>" .
 				 "<input name='input_{$id}' class='gf_coupon_code_entry'   type='text' "  . '/>' .
 		         "<input name='input_{$id}' id='input_{$form_id}_{$id}' class='gf_coupon_code'   type='hidden' "  . '/>' .
-		         "<input type='button' value='" . esc_attr__( 'Apply', 'gf-quantity-discount' ) . "' id='gf_coupon_button' class='button' {$disabled_text} " . $this->get_tabindex() . '/> ' .
+		         "<input type='button' value='" . esc_attr__( 'Apply', 'gf-quantity-discount' ) . "' id='gf_coupon_button' class='button'" . $this->get_tabindex() . '/> ' .
 		         "<div id='gf_coupon_info'></div>" .
 		         "</div>";
 

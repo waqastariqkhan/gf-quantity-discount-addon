@@ -55,8 +55,6 @@ jQuery(document).ready(function ($) {
   let couponDetails = JSON.parse($("#coupon_details").val());
 
   couponDetails.forEach((currentElement, i) => {
-    console.log(currentElement);
-
     $("tbody.container").append(`<tr class="template row">
     <td width="50%">
         <input type="text" name="coupon-name[]" value=${

@@ -3,13 +3,13 @@
 jQuery(document).ready(function ($) {
   let reqRes = null;
 
-  $(document).on("gform_post_render", function (event, form_id, current_page) {
+  $(document).on("gform_post_render", function (event, formID, current_page) {
     $.ajax({
       type: "GET",
       url: "/wp-admin/admin-ajax.php",
       data: {
         action: "get_feed_data",
-        form_id: form_id,
+        form_id: formID,
       },
       success: function (response) {
         reqRes = JSON.parse(response);
@@ -37,6 +37,7 @@ jQuery(document).ready(function ($) {
 
   function getActiveProductTotal(productID, formID) {
     let productQuantity = $(`#input_${formID}_${productID}_1`).val();
+
     let productPrice = $(`#ginput_base_price_${formID}_${productID}`).attr(
       "value"
     );
@@ -45,31 +46,99 @@ jQuery(document).ready(function ($) {
     return [total, productQuantity];
   }
 
+  function getRigpassProductTotal() {
+    let total =
+      Number(localStorage.getItem("productPrice")) *
+      Number(localStorage.getItem("productQuantity"));
+    return [total, Number(localStorage.getItem("productQuantity"))];
+  }
+
   setTimeout(function () {
     let discountValue = 0;
     let couponValue,
       couponQuantity = 0;
-    const minQuantity = reqRes.feed[0].meta.minimum_quantity;
-    const quantityDiscountValue = reqRes.feed[0].meta.discount_amount;
-    const discountType = reqRes.feed[0].meta.discount_type;
-    const discount_method = reqRes.feed[0].meta.discount_method;
-    let coupon_details = reqRes.feed[0].meta.coupon_details;
-    let productID = Math.floor(reqRes.feed[0].meta.mappedFields_product_name);
+
+    const gfDiscountFeed = $.grep(reqRes.feed, function (obj) {
+      return obj.addon_slug === "gf-quantity-discount";
+    });
+
+    const minQuantity = gfDiscountFeed[0].meta.minimum_quantity;
+    const quantityDiscountValue = gfDiscountFeed[0].meta.discount_amount;
+    const discountType = gfDiscountFeed[0].meta.discount_type;
+    const discount_method = gfDiscountFeed[0].meta.discount_method;
+    let coupon_details = gfDiscountFeed[0].meta.coupon_details;
+    let productID = Math.floor(
+      gfDiscountFeed[0].meta.mappedFields_product_name
+    );
+    let productQuantityField = Math.floor(
+      gfDiscountFeed[0].meta.mappedFields_product_quantity
+    );
+
     const formID = $(".gform_wrapper form").attr("data-formid");
+
+    let fieldLength = reqRes.field.length;
+    let productPrice,
+      productQuantity = 0;
+    let showBreakdown = false;
+    let inputCoupon = null;
+
+    let quantityFieldType = null;
+
+    for (let i = 0; i < fieldLength; i++) {
+      if (reqRes.field[i].id === productID) {
+        if (reqRes.field[i].inputType === "radio") {
+          productPrice = parseInt(
+            reqRes.field[i].choices[0].price.replace("$", ""),
+            10
+          );
+        } else if (reqRes.field[i].inputType === "singleproduct") {
+          productPrice = parseInt(
+            reqRes.field[i].basePrice.replace("$", ""),
+            10
+          );
+        }
+        localStorage.setItem("productPrice", productPrice);
+      }
+
+      if (reqRes.field[i].id === productQuantityField) {
+        console.log("here");
+        if (reqRes.field[i].inputType === "number") {
+          quantityFieldType = "input";
+        } else if (reqRes.field[i].inputType === "select") {
+          quantityFieldType = "select";
+        }
+      }
+    }
+
+    $(document).on("click", ".gform_next_button", function (e) {
+      productQuantity = $(`#input_${formID}_${productQuantityField}`)
+        .find(":selected")
+        .val();
+      localStorage.setItem("productQuantity", productQuantity);
+    });
+
+    if (gfDiscountFeed[0].meta.mappedFields_product_quantity)
+      var selector =
+        quantityFieldType +
+        '[name="input_' +
+        gfDiscountFeed[0].meta.mappedFields_product_quantity +
+        '"]';
+
+    $(selector).on("change", function () {
+      productQuantity = $(this).val();
+      localStorage.setItem("productQuantity", productQuantity);
+    });
 
     $(document).on("click", "#gf_coupon_button", function (e) {
       if (discount_method === "coupon_discount") {
-        const inputCoupon = $(".gf_coupon_code_entry").val();
+        inputCoupon = $(".gf_coupon_code_entry").val();
         $(".gf_coupon_code").val(inputCoupon).trigger("change");
         [couponValue, couponQuantity] = searchCoupon(
           inputCoupon,
           coupon_details
         );
         if (couponValue) {
-          let [total, activeProductQuantity] = getActiveProductTotal(
-            productID,
-            formID
-          );
+          let [total, activeProductQuantity] = getRigpassProductTotal();
           if (Number(activeProductQuantity) >= couponQuantity) {
             if (discountType == "percent") {
               discountValue = total * (couponValue / 100);
@@ -78,12 +147,37 @@ jQuery(document).ready(function ($) {
             }
             gformCalculateTotalPrice(formID);
             $(this).prop("disabled", true);
+            showBreakdown = true;
+            if ($(".invalid-coupon").length) {
+              $(".invalid-coupon").remove();
+            }
           }
+        } else {
+          $("#gf_coupons_container_1").append(
+            "<span class='invalid-coupon'> Invalid Coupon Code. Please recheck your coupon code and re-enter it. </span>"
+          );
         }
       }
     });
 
     gform.addFilter("gform_product_total", function (total, formId) {
+      if (showBreakdown) {
+        $(".gfield_total").prepend(`
+        <div class="cart">
+        <div class="cart-item">
+          <span>Subtotal:</span> $${total}
+        </div>
+        <div class="cart-item">
+          <span>Discount code ${inputCoupon}:
+          <span class="discount-value"> 
+                -$${discountValue}
+                </span> 
+                </span> 
+        </div>
+      </div>`);
+        showBreakdown = false;
+      }
+
       if (discount_method === "quantity_discount") {
         let [ptotal, activeProductQuantity] = getActiveProductTotal(
           productID,

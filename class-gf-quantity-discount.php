@@ -143,11 +143,13 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 	 * @return void
 	 */
 	public function get_feed_data() {
-		$form_id = isset( $_POST['form_id'] ) ? (int) $_POST['form_id'] : null;
-		$feed    = GFAPI::get_feeds( $form_id );
+		$form_id = isset( $_GET['form_id'] ) ? (int) $_GET['form_id'] : null;
+		$feeds    = GFAPI::get_feeds( null, $form_id );
+		$form_field = GFAPI::get_form( $form_id );
 		echo wp_json_encode(
 			array(
-				'feed' => $feed,
+				'feed' => $feeds,
+				'field' => $form_field['fields']
 			)
 		);
 		wp_die();
@@ -162,6 +164,9 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 	 * @return list  [$coupon_value, $coupon_quantity]
 	 */
 	public function searchCoupon($coupon_code, $coupon_details) {
+		$coupon_value 	 = 0;
+		$coupon_quantity = 0;
+		
 		foreach ($coupon_details as $coupon) {
 			if ($coupon['cN'] === $coupon_code) {
 				$coupon_value = $coupon['cD'];
@@ -170,6 +175,24 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 			}
 		}
 		return [$coupon_value, $coupon_quantity];
+	}
+	
+	
+	/**
+	 * Searches Gravity form Feed Addon
+	 *
+	 * @param string $dataArray
+	 * @param array  $addonSlug
+	 * @return list  $filterd array
+	 */
+	function filterArrayByAddonSlug($dataArray, $addonSlug) {
+		$filteredArray = [];
+		foreach ($dataArray as $item) {
+			if ($item['addon_slug'] === $addonSlug) {
+				$filteredArray[] = $item;
+			}
+		}
+		return $filteredArray;
 	}
 
 
@@ -183,17 +206,22 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 	 */
 	public function calc_add_discount( $product_info, $form, $entry ) {
 
-		$feed             		 = GFAPI::get_feeds( $form['ID'] );
-		$minimum_quantity 		 = $feed[0]['meta']['minimum_quantity'];
-		$minimum_discount_value  = $feed[0]['meta']['minimum_discount_value'];
-		$discount_type           = $feed[0]['meta']['discount_type'];
-		$discount_method    	 = $feed[0]['meta']['discount_method'];
-		$coupon_details    		 = $feed[0]['meta']['coupon_details'];
-		$product_id				 = (int) floatval($feed[0]['meta']['mappedFields_product_name']);
+		$feed             		 = GFAPI::get_feeds( null, $form['id'] );
+		$feed 					 = $this->filterArrayByAddonSlug( $feed, 'gf-quantity-discount' );
+		$feed 					 = array_values( $feed )[0];
+		$minimum_quantity 		 = $feed['meta']['minimum_quantity'];
+		$minimum_discount_value  = $feed['meta']['minimum_discount_value'];
+		$discount_type           = $feed['meta']['discount_type'];
+		$discount_method    	 = $feed['meta']['discount_method'];
+		$coupon_details    		 = $feed['meta']['coupon_details'];
+		$product_id				 = (int) floatval($feed['meta']['mappedFields_product_name']);
 		$product 		  	     = $product_info['products'][$product_id];
 		$total_w_currency 	     = (int) preg_replace( '/\..+$/i', '', preg_replace( '/[^0-9\.]/i', '', $product['price'] ) );
-		$total_product_value     = (int) $total_w_currency * $product['quantity'];			
+		$total_product_value     = (int) $total_w_currency * $product['quantity'];	
 		
+		//$this->log_debug( __METHOD__ . '(): feed => ' . print_r( $total_product_value, true ) );		
+		GFCommon::log_debug( 'gform_is_value_match: $field_value => ' . print_r( $feed , 1 ) );
+
 		if ( 'quantity_discount' === $discount_method ) {
 			if ( $product['quantity'] >= $minimum_quantity ) {
 				if ( 'percent' === $discount_type ) {
@@ -328,6 +356,16 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 								'label'    => esc_html__( 'Product Name', 'gf-quantity-discount' ),
 								'required' => 0,
 							),
+							array(
+								'name'     => 'product_quantity',
+								'label'    => esc_html__( 'Product Quantity', 'gf-quantity-discount' ),
+								'required' => 0,
+							),
+							array(
+								'name'     => 'product_price',
+								'label'    => esc_html__( 'Product Price', 'gf-quantity-discount' ),
+								'required' => 0,
+							),
 						),
 					),
 				),
@@ -412,9 +450,9 @@ class GF_Quantity_Discount extends GFFeedAddOn {
 							<td width="10%" colspan="4"><span class="add">Add</span></td>
 						</tr>
 						<tr>
-							<th> Coupon Name </th>
-							<th> Coupon Discount Value </th>
-							<th> Minimum Quantity </th>
+							<th> <?php esc_html__( 'Coupon Details', 'gf-quantity-discount' ) ?></th>
+							<th> <?php esc_html__( 'Coupon Discount Value ', 'gf-quantity-discount' ) ?> </th>
+							<th> <?php esc_html__( 'Minimum Quantity', 'gf-quantity-discount' ) ?></th>
 						</tr>
 					</thead>
 					<tbody class="container">

@@ -2,10 +2,10 @@
 /**
  * Plugin Name: Gravity Forms Quantity Discount Addon
  * Plugin URI: https://github.com/waqastariqkhan/gf-quantity-discount-addon
- * Description: A simple add-on to demonstrate the use of the Add-On Framework
+ * Description: Adds the ability to provideo quantity and coupon based discounts
  * Version: 1.0
- * Author: Waqas Tariq
- * Author URI: https://github.com/waqastariqkhan/
+ * Author: WPSPINSLLC
+ * Author URI: https://wpspins.com/?ref=Rigpass
  *
  * @package none
  */
@@ -34,6 +34,7 @@ class GF_Quantity_Discount_Addon {
 		}
 
 		wp_enqueue_script( 'gf-quantity-addon-frontend', plugin_dir_url( __FILE__ ) . 'assets/js/gf-quantity-addon-frontend.js', array( 'jquery-ui-core', 'jquery-ui-tabs' ), 0.1, true );
+		wp_enqueue_style( 'gf-quantity-addon-frontend-style',   plugin_dir_url( __FILE__ ) .  'assets/css/style.css' );
 
 		require_once 'class-gf-quantity-discount.php';
 		GFAddOn::register( 'GF_Quantity_Discount' );

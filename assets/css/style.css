@@ -1,0 +1,22 @@
+.cart {
+  max-width: 300px;
+}
+.cart-item {
+  margin-bottom: 20px;
+  width: 325px;
+}
+.cart-item span {
+  font-weight: bold;
+}
+.discount-value {
+  color: red;
+  font-weight: normal;
+}
+.invalid-coupon {
+  color: red;
+  font-weight: normal;
+  margin-top: 10px;
+}
+#gf_coupon_info {
+  margin-bottom: 20px;
+}
