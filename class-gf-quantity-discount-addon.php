@@ -2,10 +2,10 @@
 /**
  * Plugin Name: Gravity Forms Quantity Discount Addon
  * Plugin URI: https://github.com/waqastariqkhan/gf-quantity-discount-addon
- * Description: A simple add-on to demonstrate the use of the Add-On Framework
+ * Description: Adds the ability to provideo quantity and coupon based discounts
  * Version: 1.0
- * Author: Waqas Tariq
- * Author URI: https://github.com/waqastariqkhan/
+ * Author: WPSPINSLLC
+ * Author URI: https://wpspins.com/?ref=Rigpass
  *
  * @package none
  */
