@@ -175,7 +175,7 @@ jQuery(document).ready(function ($) {
         <div class="cart-item">
           <span>Discount code ${inputCoupon}:
           <span class="discount-value"> 
-                -$${discountValue}
+                -$${Math.ceil(discountValue)}
                 </span> 
                 </span> 
         </div>
@@ -198,7 +198,7 @@ jQuery(document).ready(function ($) {
       }
 
       total -= discountValue;
-      return total;
+      return Math.floor(total);
     });
   }, 2000);
 });
